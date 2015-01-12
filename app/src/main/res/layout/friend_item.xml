@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <TextView
+        android:text="Jerry Bao"
+        android:id="@+id/friend_item_string"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:textSize="25dp"
+        android:textStyle="bold" />
+    <TextView
+        android:text="id"
+        android:id="@+id/friend_item_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:textSize="25dp"
+        android:textStyle="bold"
+        android:layout_below="@+id/friend_item_string"/>
+    <Button
+        android:id="@+id/delete_friend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/add_btn"
+        android:layout_below="@+id/friend_item_id"
+        android:text="Delete"
+        android:textSize="20dp"
+        />
+    <Button
+        android:id="@+id/addToCaravan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add To Caravan"
+        android:textSize="20dp"
+        android:layout_alignTop="@+id/delete_friend"
+        android:layout_toRightOf="@+id/delete_friend"
+        android:layout_toEndOf="@+id/delete_friend" />
+</RelativeLayout>

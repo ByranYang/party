@@ -1,0 +1,33 @@
+
+
+
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+tools:context="com.example.selena_wang.frontend.caravan_map">
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/map"
+        tools:context=".caravan_map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        tools:layout="@layout/caravan_map_layout" />
+
+    <!--<Button-->
+        <!--android:id="@+id/end_caravan_button"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--android:layout_alignParentRight="true"-->
+        <!--android:text="@string/end_caravan_button"-->
+        <!--android:background="@color/common_signin_btn_default_background"-->
+        <!--android:textColor="@color/common_signin_btn_dark_text_default"-->
+        <!--android:onClick="onClickEnd">-->
+
+    <!--</Button>-->
+
+</RelativeLayout>

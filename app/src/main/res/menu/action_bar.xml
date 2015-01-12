@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Friends -->
+    <item android:id="@+id/friend_icon"
+        android:icon="@drawable/friends"
+        android:title="@string/title_activity_friends"
+        android:showAsAction="ifRoom"/>
+
+    <!-- Caravan Map -->
+    <item android:id="@+id/caravan_icon"
+        android:icon="@drawable/map_icon"
+        android:title="@string/title_activity_caravan_map"
+        android:showAsAction="ifRoom" />
+
+    <!-- Create Map -->
+    <item android:id="@+id/create_icon"
+        android:icon="@drawable/create_map"
+        android:title="@string/title_activity_create_caravan"
+        android:showAsAction="ifRoom"/>
+
+</menu>
