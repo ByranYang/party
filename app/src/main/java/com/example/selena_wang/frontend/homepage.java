@@ -31,6 +31,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -298,7 +299,7 @@ public class homepage extends Activity {
         private JSONArray friends_array;
         private JSONArray caravans_array;
         private boolean setAdapter = false;
-        private ArrayList<String[]> list_file = new ArrayList<String[]>();
+        private ArrayList<HashMap<String,String>> list_file = new ArrayList<HashMap<String, String>>();
 
         // list structure = [caravan/friend, username/caravan_id, caravan destination, caravan members]
         private void create_listView(JSONObject friends, JSONObject caravans){
@@ -319,14 +320,17 @@ public class homepage extends Activity {
                 }
             }
 
-            list_file = new ArrayList<String[]>();
 
             //friend_request structure = [time, "friend_request", username]
             //past caravan list structure = [time, "caravan", caravan_id, caravan destination, caravan members]
             for(int i = 0; i<friends_array.length(); i++){
                 try {
                     String adding = Integer.toString(friends_array.getInt(i));
-                    list_file.add(new String[]{"0","friend_request",adding});
+                    HashMap<String,String>to_add = new HashMap<String,String>();
+                    to_add.put("username",adding);
+                    to_add.put("time","time");
+                    to_add.put("type","friend_request");
+                    list_file.add(to_add);
                 }catch(JSONException e){
                     e.printStackTrace();
                 }
@@ -335,7 +339,11 @@ public class homepage extends Activity {
 
             for(int i = 0; i<caravans_array.length(); i++){
                 try {
-                    list_file.add(new String[]{"0","caravan",caravans_array.getJSONObject(i).toString()});
+                    HashMap<String,String>to_add = new HashMap<String,String>();
+                    to_add.put("caravan_id",caravans_array.getJSONObject(i).toString());
+                    to_add.put("time","time");
+                    to_add.put("type","caravan");
+                    list_file.add(to_add);
                 }catch(JSONException e){
                     e.printStackTrace();
                 }

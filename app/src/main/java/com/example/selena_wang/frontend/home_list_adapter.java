@@ -27,9 +27,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 /**
  * Created by selena_wang on 10/23/14.
@@ -39,13 +41,19 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
     // friend list structure = [time, "friend", username, user_id]
     //friend_request structure = [time, "friend_request", username]
     //caravan list structure = [time, "caravan", caravan_id, caravan destination, caravan members]
-    private ArrayList<String[]> list = new ArrayList<String[]>();
+    private ArrayList<HashMap<String,String>> list = new ArrayList<HashMap<String, String>>();
     private Context context;
+
+
+    private ArrayList<String> user_ids = new ArrayList<String>();
+    public ArrayList<String> get_ids(){
+        return user_ids;
+    }
 
 
     private LayoutInflater mInflater;
 
-    public home_list_adapter(ArrayList<String[]> list, Context context) {
+    public home_list_adapter(ArrayList<HashMap<String,String>> list, Context context) {
         this.list = list;
         this.context = context;
         mInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -70,15 +78,18 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
     private static final int friend_request = 0;
     private static final int caravan = 1;
     private static final int friend = 2;
-    private static final int ERROR = 3;
+    private static final int caravan_friend = 3;
+    private static final int ERROR = 4;
     public int getItemViewType(int position){
-        String temp = list.get(position)[1];
+        String temp = list.get(position).get("type");
         if(temp=="friend_request"){
             return friend_request;
         }else if(temp=="caravan") {
             return caravan;
-        }else if(temp=="friend"){
+        }else if(temp=="friend") {
             return friend;
+        }else if(temp=="caravan_friend"){
+            return caravan_friend;
         }else{
             return ERROR;
         }
@@ -102,7 +113,7 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
                     holder.text1 = (TextView)convertView.findViewById(R.id.list_item_string);
                     holder.add = addBtn;
                     holder.delete= deleteBtn;
-                    holder.text1.setText(list.get(position)[2] + " wants to be your friend!");
+                    holder.text1.setText(list.get(position).get("username") + " wants to be your friend!");
 
                     deleteBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -121,7 +132,7 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
                 case caravan:
                     convertView = mInflater.inflate(R.layout.past_caravan_item, null);
                     holder.text1 = (TextView)convertView.findViewById(R.id.list_item_destination);
-                    holder.text1.setText(list.get(position)[2]);
+                    holder.text1.setText(list.get(position).get("caravan_id"));
                     holder.add = (Button)convertView.findViewById(R.id.accept_caravan_btn);
                     holder.delete = (Button)convertView.findViewById(R.id.deny_caravan_btn);
                     holder.add.setOnClickListener(new View.OnClickListener() {
@@ -138,13 +149,29 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
                         }
                     });
                     break;
+
+                case caravan_friend:
+                    convertView = mInflater.inflate(R.layout.caravan_friend_item,null);
+                    holder.text1 = (TextView)convertView.findViewById(R.id.caravan_friend_item_string);
+                    holder.text2 = (TextView)convertView.findViewById(R.id.caravan_friend_item_id);
+                    holder.add = (Button)convertView.findViewById(R.id.add_to_caravan_btn);
+                    holder.add.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String id = list.get(position).get("user_id");
+                            if(!user_ids.contains(id)) {
+                                user_ids.add(list.get(position).get("user_id"));
+                            }
+                            notifyDataSetChanged();
+                        }
+                    });
                 case friend:
                     convertView = mInflater.inflate(R.layout.friend_item,null);
                     holder.text1 = (TextView)convertView.findViewById(R.id.friend_item_string);
                     holder.text2 = (TextView) convertView.findViewById(R.id.friend_item_id);
                     holder.delete = (Button) convertView.findViewById(R.id.delete_friend);
-                    holder.text1.setText(list.get(position)[2]);
-                    holder.text2.setText(list.get(position)[3] + " is your friend's id");
+                    holder.text1.setText(list.get(position).get("username"));
+                    holder.text2.setText(list.get(position).get("user_id") + " is your friend's id");
                     holder.delete.setOnClickListener(new View.OnClickListener(){
                         @Override
                         public void onClick(View v) {
@@ -204,7 +231,7 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
         private void friendRequest(String parameter, int position1) {
             position = position1;
             HttpClient httpclient = new DefaultHttpClient();
-            String extend_url = "users/" + homepage.get_user_id() + "/friends/accept/" + list.get(position)[2];
+            String extend_url = "users/" + homepage.get_user_id() + "/friends/accept/" + list.get(position).get("username");
             HttpPost httppost = new HttpPost(homepage.url + extend_url);
             try {
                 HttpResponse response = httpclient.execute(httppost);
@@ -226,7 +253,7 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
         private void denyRequest(String parameter, int position1) {
             position = position1;
             HttpClient httpclient = new DefaultHttpClient();
-            String extend_url = "users/" + homepage.get_user_id() + "/friends/delete/" + list.get(position)[2];
+            String extend_url = "users/" + homepage.get_user_id() + "/friends/delete/" + list.get(position).get("username");
             HttpPost httppost = new HttpPost(homepage.url + extend_url);
             try {
                 HttpResponse response = httpclient.execute(httppost);
@@ -248,7 +275,7 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
         private void addCaravan(String parameter, int position1) {
             position = position1;
             HttpClient httpclient = new DefaultHttpClient();
-            String extend_url = "caravans/" + list.get(position)[2]+ "/accept/" + homepage.get_user_id();
+            String extend_url = "caravans/" + list.get(position).get("caravan_id")+ "/accept/" + homepage.get_user_id();
             HttpPost httppost = new HttpPost(homepage.url + extend_url);
             try {
                 HttpResponse response = httpclient.execute(httppost);
@@ -270,7 +297,7 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
         private void denyCaravan(String parameter, int position1) {
             position = position1;
             HttpClient httpclient = new DefaultHttpClient();
-            String extend_url = "caravans/" + list.get(position)[2] + "/deny/" + homepage.get_user_id();
+            String extend_url = "caravans/" + list.get(position).get("caravan_id") + "/deny/" + homepage.get_user_id();
             HttpPost httppost = new HttpPost(homepage.url + extend_url);
             try {
                 HttpResponse response = httpclient.execute(httppost);
@@ -292,7 +319,7 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
         private void deleteFriend(String parameter, int position1) {
             position = position1;
             HttpClient httpclient = new DefaultHttpClient();
-            String extend_url = "users/" + homepage.get_user_id() + "/friends/delete/" + list.get(position)[3];
+            String extend_url = "users/" + homepage.get_user_id() + "/friends/delete/" + list.get(position).get("user_id");
             HttpPost httppost = new HttpPost(homepage.url + extend_url);
             try {
                 HttpResponse response = httpclient.execute(httppost);
@@ -326,7 +353,7 @@ public class home_list_adapter extends BaseAdapter implements ListAdapter {
             }
             if(caravan_added){
                 list.remove(position);
-                homepage.set_caravanId(list.get(position)[2]);
+                homepage.set_caravanId(list.get(position).get("caravan_id"));
                 notifyDataSetChanged();
             }
             if(caravan_denied){

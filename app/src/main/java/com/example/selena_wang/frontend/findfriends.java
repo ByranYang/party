@@ -125,7 +125,7 @@ public class findfriends extends Fragment {
                 HttpResponse response_user = httpclient.execute(httpPost_friend);
                 try{
                     JSONObject json_user = new JSONObject(EntityUtils.toString(response_user.getEntity()));
-                        if(json_user.getString("reply_code").equals("SUCCESS")) {
+                    if(json_user.getString("reply_code").equals("SUCCESS")) {
                         added = true;
                     }
 

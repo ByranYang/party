@@ -42,13 +42,14 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
-public class create_caravan extends Activity implements OnItemClickListener, OnItemSelectedListener {
+public class create_caravan extends Activity {
 
     private static boolean active = false;
-    public static final String base_url = "http://caravanparty.herokuapp.com/";
+    private home_list_adapter create_adapter;
 
     public static boolean getActive(){
         return active;
@@ -57,20 +58,10 @@ public class create_caravan extends Activity implements OnItemClickListener, OnI
     public ListView friendList;
 
     // Initialize variables
-    //private Button createC;
     String SUCCESS = "SUCCESS";
     String ERR_USER_ALREADY_HOSTING = "ERR_USER_ALREADY_HOSTING";
     String ERR_USER_DOESNT_EXIST = "ERR_USER_DOESNT_EXIST";
 
-    AutoCompleteTextView textView=null;
-    private ArrayAdapter<String> adapter;
-
-    //These values show in autocomplete
-    String item[]={
-            "January", "February", "March", "April",
-            "May", "June", "July", "August",
-            "September", "October", "November", "December"
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,34 +71,16 @@ public class create_caravan extends Activity implements OnItemClickListener, OnI
         friendList = (ListView) findViewById(R.id.addfriend_list);
         createListView();
 
-        /*
-        // Get AutoCompleteTextView reference from xml
-        textView = (AutoCompleteTextView) findViewById(R.id.inputAddress);
+    }
 
-        //Create adapter
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, item);
-
-        textView.setThreshold(1);
-
-        //Set adapter to AutoCompleteTextView
-        textView.setAdapter(adapter);
-        textView.setOnItemSelectedListener(this);
-        textView.setOnItemClickListener(this);*/
+    private ArrayList<String> getIDs(){
+        return create_adapter.get_ids();
     }
 
     private void createListView(){
         new MyAsyncTask().execute("list");
 
     }
-    //createC = (Button) findViewById(R.id.caravanMap);
-    //createC.setOnClickListener(new View.OnClickListener() {
-            /*@Override
-            public void onClick(View v) {
-                Intent i = new Intent(create_caravan.this, caravan_map.class);
-                startActivity(i);
-            }*/
-    //  });
-    //}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -160,7 +133,7 @@ public class create_caravan extends Activity implements OnItemClickListener, OnI
         private String host_id = homepage.get_user_id();
         private Boolean setAdapter = false;
 
-        ArrayList<String[]> list_file;
+        ArrayList<HashMap<String,String>> list_file;
 
         @Override
         protected Double doInBackground(String... params) {
@@ -168,7 +141,7 @@ public class create_caravan extends Activity implements OnItemClickListener, OnI
                 createList(params[0]);
             }
             if(params[0].equals("create")) {
-                postData(params[0]);
+                createCaravan(params[0]);
             }
             return null;
         }
@@ -202,8 +175,13 @@ public class create_caravan extends Activity implements OnItemClickListener, OnI
                     JSONObject json_friend = new JSONObject(EntityUtils.toString(response_friend.getEntity()));
                     String name = json_friend.getString("name");
                     String id = json_friend.getString("user_id");
-                    String[] to_add = {"time","friend", name, id};
+                    HashMap<String,String>to_add = new HashMap<String,String>();
+                    to_add.put("username",name);
+                    to_add.put("user_id",id);
+                    to_add.put("time","time");
+                    to_add.put("type","friend");
                     list_file.add(to_add);
+
                 }catch(JSONException e){
                     e.printStackTrace();
                 }
@@ -220,7 +198,7 @@ public class create_caravan extends Activity implements OnItemClickListener, OnI
                 e.printStackTrace();
             }
 
-            list_file = new ArrayList<String[]>();
+            list_file = new ArrayList<HashMap<String,String>>();
             for(int i = 0; i<friend_array.length(); i++){
                 try {
                     getUser(Integer.toString(friend_array.getInt(i)));
@@ -231,24 +209,14 @@ public class create_caravan extends Activity implements OnItemClickListener, OnI
             setAdapter = true;
         }
 
-        private void postData(String parameter) {
+        private void createCaravan(String parameter) {
             HttpClient httpclient = new DefaultHttpClient();
             String extend_url = "caravans/create/" + host_id;
-            HttpPost httppost = new HttpPost(base_url + extend_url);
+            HttpPost httppost = new HttpPost(homepage.url + extend_url);
 
-            //key value pairs to use as params in post request
-            //List data = new ArrayList();
-            //data.add(new BasicNameValuePair("user_id", host_id));
-
-            /*try {
-                httppost.setEntity(new UrlEncodedFormEntity(data));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }*/
             try {
                 HttpResponse response = httpclient.execute(httppost);
                 try {
-                    //get Json from response
                     String json_string = EntityUtils.toString(response.getEntity());
                     System.out.println(json_string);
                     JSONObject json = new JSONObject(json_string);
@@ -276,89 +244,67 @@ public class create_caravan extends Activity implements OnItemClickListener, OnI
                         e.printStackTrace();
                     }
 
+                    ArrayList<String> ids = getIDs();
+                    for(int i = 0; i<ids.size();i++){
+                        inviteUser(Integer.parseInt(ids.get(i)));
+                    }
+
                     System.out.println(ERR);
                     if(ERR.equals("SUCCESS")){
                         homepage.set_caravanId(caravan_id);
                         Intent intent = new Intent(create_caravan.this, caravan_map.class);
-                        //intent.putExtra("caravan_id", caravan_id);
                         intent.putExtra("user_id",host_id);
                         startActivity(intent);
                     }else{
-                        createAlertDialog(ERR);
+
                     }
                 }
             });
 
         }
 
+        private void inviteUser(int id){
+            HttpClient httpclient = new DefaultHttpClient();
+            String extend_url = "caravans/" + homepage.get_caravanId() + "/invite/" + id;
+            HttpPost httppost = new HttpPost(homepage.url + extend_url);
+
+            try {
+                HttpResponse response = httpclient.execute(httppost);
+                try {
+                    String json_string = EntityUtils.toString(response.getEntity());
+                    System.out.println(json_string);
+                    JSONObject json = new JSONObject(json_string);
+
+                    String ERR = "ERR";
+                    String caravan_id = "id";
+                    try {
+                        ERR = json.getString("reply_code");
+                        caravan_id = json.getString("id");
+                    }catch(JSONException e){
+                        e.printStackTrace();
+                    }
+
+                    System.out.println(ERR);
+                    if(ERR.equals("SUCCESS")){
+                    }else{
+
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         protected void onPostExecute(Double result){
             if (setAdapter){
-                home_list_adapter friend_list_adapter= new home_list_adapter(list_file,create_caravan.this);
-                friendList.setAdapter(friend_list_adapter);
+                create_adapter= new home_list_adapter(list_file,create_caravan.this);
+                friendList.setAdapter(create_adapter);
             }
         }
     }
-
-    public void createAlertDialog(String ERR){
-        String message = "";
-        System.out.println(ERR);
-        if(ERR=="ERR_USER_ALREADY_HOSTING"){
-            message = "User already hosting";
-        }else if(ERR=="ERR_USER_DOESNT_EXIST"){
-            message = "User doesn't exist";
-        }else{
-            System.out.println("I dont know unknown error?");
-            return;
-        }
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(create_caravan.this);
-        alertDialogBuilder.setMessage(message);
-        alertDialogBuilder.setNegativeButton("Okay",new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int id) {
-                dialog.cancel();
-            }
-        });
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
-    }
-
-
-    @Override
-    public void onItemSelected(AdapterView<?> arg0, View arg1, int position,
-                               long arg3) {
-        // TODO Auto-generated method stub
-        //Log.d("AutocompleteContacts", "onItemSelected() position " + position);
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> arg0) {
-        // TODO Auto-generated method stub
-
-        InputMethodManager imm = (InputMethodManager) getSystemService(
-                INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-        // TODO Auto-generated method stub
-
-        // Show Alert
-        Toast.makeText(getBaseContext(), "Position:"+arg2+" Month:"+arg0.getItemAtPosition(arg2),
-                Toast.LENGTH_LONG).show();
-
-        Log.d("AutocompleteContacts", "Position:"+arg2+" Month:"+arg0.getItemAtPosition(arg2));
-
-    }
-
-    protected void onResume() {
-        super.onResume();
-    }
-
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-
 
 }
